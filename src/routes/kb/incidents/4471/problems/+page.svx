@@ -4,7 +4,7 @@ title: '#4471 · more than one problem'
 owner: jacautrey3
 status: resolved
 reviewed: 2026-10-29
-signature: jacautrey3
+signature: v1.eyJzdWIiOiIyNDg3IiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpYXQiOjE3OTMzMzY3MTEsImV4cCI6MTc5MzQyMzExMX0.SYDHuj_rqMCpepa9xoAMpPEOMrteAHjdqoXhdcfg7oY
 ---
 
 <script>
@@ -16,12 +16,12 @@ signature: jacautrey3
   const issues = { parser: `${repo}/1`, hint: `${repo}/2`, shift: `${repo}/3` };
 </script>
 
-[#4471](/kb/incidents/4471) says one issue, one fix queued. Read by cause instead of by subject,
-the reports in it describe more than one bug, and the queued parser fix closes only one of them.
+[#4471](/kb/incidents/4471) said one issue, one fix queued. Read by cause instead of by subject,
+the reports in it describe more than one bug, and the parser fix closed only one of them.
 
 <Callout kind="warn">
-#4471 is not known. Each problem below has its own issue; the counts are the desk's own view,
-computed from the export every time this page renders.
+#4471 closed on 5 October with two outcomes, not one. Each problem below has its own issue; the
+counts are the desk's own view, computed from the export every time this page renders.
 </Callout>
 
 ## What the ticket holds
@@ -49,13 +49,17 @@ these reports says some version of "wrong day". The subject cannot tell a month-
 form hint from a time shift; only the tenant, the channel and the body can. The decision's own
 consequence, "engineering merges them later", assumed the opposite mistake.
 
-## What to do
+## Where each one stands
 
-- **`parser`**: ship the queued fix. Then re-run this page: its row should stop growing.
-- **`hint`**: change the hint `booking-v3` prints, or make the form read the order it prints. The
-  parser fix does not touch this path.
-- **`shift`**: look at time zones and the summer-time change. One reporter's clients in two cities
-  got different days for the same meeting; another sees it only in June.
+From engineering's update on #4471, closed 5 October:
+
+- **`parser`**: fixed, `fix(dates): parse dd/mm for eu locales`. Its issue is closed as completed.
+- **`hint`**: won't fix, the `booking-v3` form is retired. The parser fix never touched this path;
+  retiring the form ends it. Its issue is closed as not planned.
+- **`shift`**: the desk's code counts these under `parser`, so its issue is closed as a duplicate of
+  the parser issue. The parser fix swaps day and month back; it cannot move a date by a day. If
+  one-day moves keep coming in after 5 October, they are time zones or the summer-time change, and
+  they need a ticket of their own.
 - **The desk**: propose a decision that replaces 0001, splitting merged tickets by cause before
   marking them known.
 

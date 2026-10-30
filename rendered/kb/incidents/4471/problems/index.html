@@ -47,8 +47,8 @@
   </header>
   
   <main>
-<p><a href="/kb/incidents/4471">#4471</a> says one issue, one fix queued. Read by cause instead of by subject, the reports in it describe more than one bug, and the queued parser fix closes only one of them.</p>
-<aside class="warn">#4471 is not known. Each problem below has its own issue; the counts are the desk's own view, computed from the export every time this page renders.</aside>
+<p><a href="/kb/incidents/4471">#4471</a> said one issue, one fix queued. Read by cause instead of by subject, the reports in it describe more than one bug, and the parser fix closed only one of them.</p>
+<aside class="warn">#4471 closed on 5 October with two outcomes, not one. Each problem below has its own issue; the counts are the desk's own view, computed from the export every time this page renders.</aside>
 <h2>What the ticket holds</h2>
 <p class="sum"><strong>3</strong> rows in the export · <strong>412</strong> reports once each · <strong>3</strong> problems</p>
 <table class="pt"><thead><tr><th>problem</th><th>reports</th><th>what goes wrong</th><th>tagged as</th><th>tenants</th><th>seen</th><th>issue</th></tr></thead><tbody>
@@ -61,9 +61,10 @@
 <p>The intake tag is not used: it is a guess from the reporter's browser, and the <em>tagged as</em> column shows how often it disagrees with the tenant.</p>
 <h2>Why the subject rule merged them</h2>
 <p><a href="/kb/decisions/0001-dedupe-by-subject">Decision 0001</a> merges on subject alone, and every one of these reports says some version of "wrong day". The subject cannot tell a month-first parser from a form hint from a time shift; only the tenant, the channel and the body can. The decision's own consequence, "engineering merges them later", assumed the opposite mistake.</p>
-<h2>What to do</h2>
-<ul><li><strong><code>parser</code></strong>: ship the queued fix. Then re-run this page: its row should stop growing.</li><li><strong><code>hint</code></strong>: change the hint <code>booking-v3</code> prints, or make the form read the order it prints. The parser fix does not touch this path.</li><li><strong><code>shift</code></strong>: look at time zones and the summer-time change. One reporter's clients in two cities got different days for the same meeting; another sees it only in June.</li><li><strong>The desk</strong>: propose a decision that replaces 0001, splitting merged tickets by cause before marking them known.</li></ul>
-<p class="stamp">desk ref <b>DR-05MJ-0R2W</b></p>
+<h2>Where each one stands</h2>
+<p>From engineering's update on #4471, closed 5 October:</p>
+<ul><li><strong><code>parser</code></strong>: fixed, <code>fix(dates): parse dd/mm for eu locales</code>. Its issue is closed as completed.</li><li><strong><code>hint</code></strong>: won't fix, the <code>booking-v3</code> form is retired. The parser fix never touched this path; retiring the form ends it. Its issue is closed as not planned.</li><li><strong><code>shift</code></strong>: the desk's code counts these under <code>parser</code>, so its issue is closed as a duplicate of the parser issue. The parser fix swaps day and month back; it cannot move a date by a day. If one-day moves keep coming in after 5 October, they are time zones or the summer-time change, and they need a ticket of their own.</li><li><strong>The desk</strong>: propose a decision that replaces 0001, splitting merged tickets by cause before marking them known.</li></ul>
+<p class="stamp">desk ref <b>DR-ZT2Y-EFWB</b></p>
   </main>
   <footer>Pages are written by people. Tables and charts are built from data at render time.</footer>
 </div>
