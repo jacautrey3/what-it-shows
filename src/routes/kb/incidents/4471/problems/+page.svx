@@ -1,0 +1,61 @@
+---
+layout: runbook
+title: '#4471 · more than one problem'
+owner: jacautrey3
+status: proposed
+reviewed: 2026-10-29
+signature: jacautrey3
+---
+
+<script>
+  import ProblemTable from '#lib/kb/ProblemTable.svelte';
+  import Callout from '#lib/kb/Callout.svelte';
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+
+  const repo = 'https://github.com/jacautrey3/what-it-shows/issues';
+  const issues = { parser: `${repo}/1`, hint: `${repo}/2`, shift: `${repo}/3` };
+</script>
+
+[#4471](/kb/incidents/4471) says one issue, one fix queued. Read by cause instead of by subject,
+the reports in it describe more than one bug, and the queued parser fix closes only one of them.
+
+<Callout kind="warn">
+#4471 is not known. Each problem below has its own issue; the counts are computed from the
+export every time this page renders.
+</Callout>
+
+## What the ticket holds
+
+<ProblemTable ticket={4471} {issues} />
+
+## How each report was placed
+
+1. **One report, once.** The export pages overlap, so some reports come twice. They are counted by
+   id (`uniqueById`).
+2. **The desk's own reading first.** A report in `desk-notes.json` → `oneDayMove` describes a date
+   that slid by a day, not a day and a month that swapped. It goes to `shift`, whatever the tenant.
+3. **Then the tenant, not the browser.** Every other report is placed by its tenant's locale and
+   booking form (`causes.ts`, `locales.ts`). Through `booking-v3`'s form it is `hint`; anything
+   else from a day-first tenant is `parser`.
+
+The intake tag is not used: it is a guess from the reporter's browser, and the *tagged as* column
+shows how often it disagrees with the tenant.
+
+## Why the subject rule merged them
+
+[Decision 0001](/kb/decisions/0001-dedupe-by-subject) merges on subject alone, and every one of
+these reports says some version of "wrong day". The subject cannot tell a month-first parser from a
+form hint from a time shift; only the tenant, the channel and the body can. The decision's own
+consequence, "engineering merges them later", assumed the opposite mistake.
+
+## What to do
+
+- **`parser`**: ship the queued fix. Then re-run this page: its row should stop growing.
+- **`hint`**: change the hint `booking-v3` prints, or make the form read the order it prints. The
+  parser fix does not touch this path.
+- **`shift`**: look at time zones and the summer-time change. One reporter's clients in two cities
+  got different days for the same meeting; another sees it only in June.
+- **The desk**: propose a decision that replaces 0001, splitting merged tickets by cause before
+  marking them known.
+
+<RenderStamp {signature} />
