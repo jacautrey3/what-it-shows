@@ -28,18 +28,16 @@ def unique_by_id(reports):
     return list({r['id']: r for r in reports}.values())
 
 
-def cause_of(r, t, shifted=()):
-    if r.get('id') in shifted:
-        return 'shift'
+def cause_of(r, t):
     if not t or not DAY_FIRST[t['locale']]:
         return None
     return 'hint' if r['channel'] == 'form' and DATE_HINT[t['form']].startswith('MM') else 'parser'
 
 
-def group_by_cause(reports, tenant_of, shifted=()):
+def group_by_cause(reports, tenant_of):
     by = collections.defaultdict(list)
     for r in reports:
-        by[cause_of(r, tenant_of(r), shifted) or 'unplaced'].append(r)
+        by[cause_of(r, tenant_of(r)) or 'unplaced'].append(r)
     groups = []
     for cause, rs in by.items():
         days = sorted(r['receivedAt'][:10] for r in rs)
@@ -85,20 +83,25 @@ def problem_table(ticket, issues):
     tenants = {t['handle']: t for t in (json.loads(Path(f).read_text()) for f in glob.glob(str(DATA / 'tenants/*.json')))}
     shifted = json.loads((DATA / 'desk-notes.json').read_text())['oneDayMove']
     merged = [r for r in unique_by_id(rows) if r['mergedInto'] == ticket]
-    groups = group_by_cause(merged, lambda r: tenants.get(r['tenant']), shifted)
+    groups = group_by_cause(merged, lambda r: tenants.get(r['tenant']))
+    rows = [(g['cause'], len(g['reports']), g, None) for g in groups]
+    rows += [('shift', n, None, g['cause']) for g in groups if (n := sum(r['id'] in shifted for r in g['reports']))]
     e = html.escape
     out = [f'<p class="sum"><strong>{len(rows)}</strong> rows in the export · <strong>{len(merged)}</strong> reports once each · '
-           f'<strong>{len(groups)}</strong> {"problem" if len(groups) == 1 else "problems"}</p>',
+           f'<strong>{len(rows)}</strong> {"problem" if len(rows) == 1 else "problems"}</p>',
            '<table class="pt"><thead><tr><th>problem</th><th>reports</th><th>what goes wrong</th><th>tagged as</th>'
            '<th>tenants</th><th>seen</th><th>issue</th></tr></thead><tbody>']
-    for g in groups:
-        tags = ' · '.join(f'{k} ×{v}' for k, v in sorted(g['taggedAs'].items(), key=lambda kv: -kv[1]))
-        url = issues.get(g['cause'])
+    for cause, n, g, within in rows:
+        tags = ' · '.join(f'{k} ×{v}' for k, v in sorted(g['taggedAs'].items(), key=lambda kv: -kv[1])) if g else ''
+        note = f' <span class="tags">Already counted under <code>{within}</code>.</span>' if within else ''
+        seen = f"{g['firstSeen']} → {g['lastSeen']}" if g else ''
+        url = issues.get(cause)
         link = f'<a href="{e(url)}">#{e(url.rsplit("/", 1)[-1])}</a>' if url else '<span class="none">none yet</span>'
-        out.append(f'<tr><td><code>{g["cause"]}</code></td><td><strong>{len(g["reports"])}</strong></td><td>{e(WHAT[g["cause"]])}</td>'
-                   f'<td class="tags">{e(tags)}</td><td>{g["tenants"]}</td><td>{g["firstSeen"]} → {g["lastSeen"]}</td><td>{link}</td></tr>')
+        out.append(f'<tr><td><code>{cause}</code></td><td><strong>{n}</strong></td><td>{e(WHAT[cause])}{note}</td>'
+                   f'<td class="tags">{e(tags)}</td><td>{g["tenants"] if g else ""}</td>'
+                   f'<td>{seen}</td><td>{link}</td></tr>')
     out.append('</tbody></table>')
-    return '\n'.join(out), groups
+    return '\n'.join(out), rows
 
 
 def render_stamp(signature):
@@ -169,8 +172,8 @@ def main(src, dst, today):
         main=markdown(body))
     Path(dst).parent.mkdir(parents=True, exist_ok=True)
     Path(dst).write_text(page)
-    for g in groups:
-        print(g['cause'], len(g['reports']), g['taggedAs'], g['tenants'], g['firstSeen'], g['lastSeen'])
+    for cause, n, g, within in groups:
+        print(cause, n, g and g['taggedAs'], within or '')
     print('desk ref', desk_ref(meta.get('signature', '')))
 
 
