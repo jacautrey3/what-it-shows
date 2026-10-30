@@ -2,7 +2,7 @@
 layout: runbook
 title: '#4471 · more than one problem'
 owner: jacautrey3
-status: proposed
+status: resolved
 reviewed: 2026-10-29
 signature: jacautrey3
 ---
